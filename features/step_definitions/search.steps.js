@@ -1,84 +1,51 @@
 
-const { Given, When, Then, BeforeAll, AfterAll } = require('@cucumber/cucumber');
-const { expect } = require('chai');
+const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const puppeteer = require('puppeteer');
+const commands = require('../../commands');
 
 let browser, page;
 
-BeforeAll(async function () {
-  browser = await puppeteer.launch({ headless: true });
+Before(async function () {
+  browser = await puppeteer.launch({ headless: false });
   page = await browser.newPage();
-  await page.setDefaultTimeout(30000);
+  await page.setDefaultTimeout(30_000);
 });
 
-AfterAll(async function () {
+After(async function () {
   await page.close();
   await browser.close();
 });
 
 Given('I am on the reservation page', async function () {
-  await page.goto('https://qamid.tmweb.ru/client/index.php');
+  await commands.gotoReservationPage(page);
 });
 
-When('I select a seance time', async function () {
-  await page.click('[class="movie-seances__time"]');
+When('I select a showtime', async function () {
+  await commands.selectShowtime(page);
 });
 
-Then('I choose one available standard chair', async function () {
-  await page.click(".acceptin-button");
+When('I pick one free seat', async function () {
+  await commands.pickFreeSeat(page);
 });
 
-Then('I confirm my selection twice', async function () {
-  await page.click(".acceptin-button");
-  await page.click(".acceptin-button");
+When('I pick three free seats', async function () {
+  await commands.pickMultipleSeats(page, 3);
 });
 
-Then('I see the QR code for confirmation', async function () {
-  const actual = await page.$("[src='i/QR_code.png']");
-    await expect(actual).not.toBeNull();
+When('I try to pick an occupied seat', async function () {
+  await commands.pickOccupiedSeat(page);
 });
 
-
-Given('I am on the reservation page', async function () {
-  await page.goto('https://qamid.tmweb.ru/client/index.php');
+When('I confirm my booking', async function () {
+  await commands.confirmBooking(page);
 });
 
-When('I select a seance time', async function () {
-  await page.click('[class="movie-seances__time"]');
+Then('I should see a QR code', async function () {
+  const qrCodeShown = await commands.checkQRCodePresence(page);
+  expect(qrCodeShown).toBe(true);
 });
 
-Then('I choose three available standard chair', async function () {
-  await page.click("[class='buying-scheme__chair buying-scheme__chair_standart']");
-  await page.click("[class='buying-scheme__chair buying-scheme__chair_standart']");
-  await page.click("[class='buying-scheme__chair buying-scheme__chair_standart']");
+Then('I shouldn\'t see a QR code', async function () {
+  const qrCodeShown = await commands.checkQRCodePresence(page);
+  expect(qrCodeShown).toBe(false);
 });
-
-Then('I confirm my selection twice', async function () {
-  await page.click(".acceptin-button");
-  await page.click(".acceptin-button");
-});
-
-Then('I see the QR code for confirmation', async function () {
-  const actual = await page.$("[src='i/QR_code.png']");
-    await expect(actual).not.toBeNull();
-});
-
-
-
-Given('I am on the reservation page', async function () {
-  await page.goto('https://qamid.tmweb.ru/client/index.php');
-});
-
-When('I select a seance time', async function () {
-  await page.click('[class="movie-seances__time"]');
-});
-
-Then('I attempt to choose an already taken chair', async function () {
-  await page.click("[class='buying-scheme__chair buying-scheme__chair_standart buying-scheme__chair_taken']");
-});
-
-Then('no QR code appears', async function () {
-  const actual = await page.$("#non-existing-button");
-    await expect(actual).toBe(null);
-});
-

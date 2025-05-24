@@ -1,24 +1,25 @@
-Feature: Reservation System Tests
+Feature: Online Cinema Reservation System
   As a user
-  I want to book movie tickets successfully or handle errors gracefully
-  So that my experience is smooth and reliable
+  I want to easily book movie tickets online
+  So that I can watch movies conveniently
 
-Scenario: Positive Booking of One Seat
+Scenario: Positive booking of one seat
   Given I am on the reservation page
-  When I select a seance time
-  Then I choose one available standard chair
-  Then I confirm my selection twice
-  Then I see the QR code for confirmation
+  When I select a showtime
+  And I pick one free seat
+  And I confirm my booking
+  Then I should see a QR code
 
-Scenario: Booking Multiple Seats At Once
+Scenario: Booking multiple seats at once
   Given I am on the reservation page
-  When I select a seance time
-  Then I choose three available standard chairs
-  Then I confirm my selection twice
-  Then I see the QR code for confirmation
+  When I select a showtime
+  And I pick three free seats
+  And I confirm my booking
+  Then I should see a QR code
 
-Scenario: Attempt To Reserve An Occupied Seat
+Scenario: Attempt to reserve an occupied seat
   Given I am on the reservation page
-  When I select a seance time
-  Then I attempt to choose an already taken chair
-  Then no QR code appears
+  When I select a showtime
+  And I try to pick an occupied seat
+  And I confirm my booking
+  Then I shouldn't see a QR code

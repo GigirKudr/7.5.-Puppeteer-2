@@ -1,5 +1,6 @@
 
 let page;
+let commands = require('./commands');
 
 beforeEach(async () => {
    page = await browser.newPage(); 
@@ -12,33 +13,28 @@ afterEach(() => {
 
 describe("Reservation System Tests", () => {
   beforeEach(async () => {
-   await page.goto("https://qamid.tmweb.ru/client/index.php");
+    await commands.gotoReservationPage(page);
  });
    test("'Positive booking of one seat'", async () => {
-    await page.click("[class='movie-seances__time']")
-    await page.click("[class='buying-scheme__chair buying-scheme__chair_standart']");
-    await page.click(".acceptin-button");
-    await page.click(".acceptin-button");
-   const actual = await page.$("[src='i/QR_code.png']");
-    await expect(actual).not.toBeNull();
+    await commands.selectShowtime(page);
+    await commands.pickFreeSeat(page);
+    await commands.confirmBooking(page);
+  await commands.checkQRCodePresence(page);
    }, 80_000);
 
    test("'Booking multiple seats at oncet'", async () => {
-    await page.click("[class='movie-seances__time']");
-    await page.click("[class='buying-scheme__chair buying-scheme__chair_standart']");
-    await page.click("[class='buying-scheme__chair buying-scheme__chair_standart']");
-    await page.click("[class='buying-scheme__chair buying-scheme__chair_standart']");
-   await page.click(".acceptin-button");
-    await page.click(".acceptin-button");
-   const actual = await page.$("[src='i/QR_code.png']");
-    await expect(actual).not.toBeNull();
+    await commands.selectShowtime(page);
+    await commands.pickMultipleSeats(page, 3);
+  await commands.confirmBooking(page);
+  await commands.checkQRCodePresence(page);
+
    }, 80_000);
 
    test("'Attempt to reserve an occupied seat'", async () => {
-    await page.click("[class='movie-seances__time']");
-    await page.click("[class='buying-scheme__chair buying-scheme__chair_standart buying-scheme__chair_taken']");
+    await commands.selectShowtime(page);
+    await commands.pickOccupiedSeat(page);
    const actual = await page.$("#non-existing-button");
     await expect(actual).toBe(null);
    }, 80_000);
 
- });
+  });
