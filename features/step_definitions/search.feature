@@ -1,25 +1,26 @@
-Feature: Online Cinema Reservation System
-  As a user
-  I want to easily book movie tickets online
-  So that I can watch movies conveniently
+Feature: Booking tickets
+    Scenario: Should booking one ticket
+        Given user is on 'http://qamid.tmweb.ru/client/index.php' page
+        When user choose day 
+        When user choose time 
+        When user select 1 row 10 seat 
+        When user click button 
+        When user click receive QR 
+        Then user see text 'Покажите QR-код нашему контроллеру для подтверждения бронирования.'
 
-Scenario: Positive booking of one seat
-  Given I am on the reservation page
-  When I select a showtime
-  And I pick one free seat
-  And I confirm my booking
-  Then I should see a QR code
+    Scenario: Should booking two tickets
+        Given user is on 'http://qamid.tmweb.ru/client/index.php' page
+        When user choose day 
+        When user choose time 
+        When user select 1 row 8 seat
+        When user select 1 row 9 seat
+        When user click button 
+        When user click receive QR 
+        Then user see text 'Покажите QR-код нашему контроллеру для подтверждения бронирования.'
 
-Scenario: Booking multiple seats at once
-  Given I am on the reservation page
-  When I select a showtime
-  And I pick three free seats
-  And I confirm my booking
-  Then I should see a QR code
-
-Scenario: Attempt to reserve an occupied seat
-  Given I am on the reservation page
-  When I select a showtime
-  And I try to pick an occupied seat
-  And I confirm my booking
-  Then I shouldn't see a QR code
+   Scenario: Should booking a booked ticket
+        Given user is on 'http://qamid.tmweb.ru/client/index.php' page
+        When user choose day 
+        When user choose time
+        When user select the booked place
+        Then user see button disabled 'true'

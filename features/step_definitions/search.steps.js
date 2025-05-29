@@ -1,51 +1,64 @@
 
+const puppeteer = require("puppeteer");
+const chai = require("chai");
+const expect = chai.expect;
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
-const puppeteer = require('puppeteer');
-const commands = require('../../commands');
-
-let browser, page;
+const { clickElement, getText } = require("../../commands");
+const {setDefaultTimeout} = require('@cucumber/cucumber');
+setDefaultTimeout(60 * 1000);
 
 Before(async function () {
-  browser = await puppeteer.launch({ headless: false });
-  page = await browser.newPage();
-  await page.setDefaultTimeout(30_000);
+  const browser = await puppeteer.launch({ headless: false, slowMo: 50 });
+  const page = await browser.newPage();
+  this.browser = browser;
+  this.page = page;
 });
 
 After(async function () {
-  await page.close();
-  await browser.close();
+  if (this.browser) {
+    await this.browser.close();
+  }
 });
 
-Given('I am on the reservation page', async function () {
-  await commands.gotoReservationPage(page);
+Given("user is on {string} page", async function (string) {
+  return await this.page.goto(`${string}`, {
+      setTimeout: 60000,
+  });
 });
-
-When('I select a showtime', async function () {
-  await commands.selectShowtime(page);
+When("user choose day", async function () {
+  await clickElement(this.page, ".page-nav > a:nth-child(5)");
 });
-
-When('I pick one free seat', async function () {
-  await commands.pickFreeSeat(page);
+When("user choose time", async function () {
+  await clickElement(this.page, "a.movie-seances__time");
 });
-
-When('I pick three free seats', async function () {
-  await commands.pickMultipleSeats(page, 3);
+When("user select 1 row 10 seat", async function () {
+  await clickElement(this.page, ".buying-scheme__row > span:nth-child(10)");
 });
-
-When('I try to pick an occupied seat', async function () {
-  await commands.pickOccupiedSeat(page);
+When("user select 1 row 8 seat", async function () {
+  await clickElement(this.page, ".buying-scheme__row > span:nth-child(8)");
 });
-
-When('I confirm my booking', async function () {
-  await commands.confirmBooking(page);
+When("user select 1 row 9 seat", async function () {
+  await clickElement(this.page, ".buying-scheme__row > span:nth-child(9)");
+  });
+When("user select the booked place", async function () {
+  await clickElement(this.page, ".buying-scheme__row > span:nth-child(10)");
 });
-
-Then('I should see a QR code', async function () {
-  const qrCodeShown = await commands.checkQRCodePresence(page);
-  expect(qrCodeShown).toBe(true);
+When("user click button", async function () {
+  await clickElement(this.page, "button.acceptin-button");
+  });
+When("user click receive QR", async function () {
+  await clickElement(this.page, "button.acceptin-button");
 });
-
-Then('I shouldn\'t see a QR code', async function () {
-  const qrCodeShown = await commands.checkQRCodePresence(page);
-  expect(qrCodeShown).toBe(false);
-});
+Then("user see text {string}", async function (string) {
+    const actual = await getText(this.page, "p.ticket__hint");
+    const expected = await string;
+    expect(actual).contains(expected);
+  });
+Then("user see button disabled {string}", async function (string) {
+    const actual = String(await this.page.$eval("button", (button) => {
+        return button.disabled;
+      })
+    );
+    const expected = await string;
+    expect(actual).contains(expected);
+  });

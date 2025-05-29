@@ -1,40 +1,53 @@
 
+const { clickElement, getText } = require('./commands');
+const puppeteer = require('puppeteer');
+
 let page;
-let commands = require('./commands');
 
 beforeEach(async () => {
-   page = await browser.newPage(); 
-   await page.setDefaultTimeout(30_000); 
+	page = await browser.newPage();
+	await page.setDefaultTimeout(50_000);
 });
 
 afterEach(() => {
-  page.close();
+	page.close();
 });
 
-describe("Reservation System Tests", () => {
-  beforeEach(async () => {
-    await commands.gotoReservationPage(page);
- });
-   test("'Positive booking of one seat'", async () => {
-    await commands.selectShowtime(page);
-    await commands.pickFreeSeat(page);
-    await commands.confirmBooking(page);
-  await commands.checkQRCodePresence(page);
-   }, 80_000);
+describe('Ticket booking tests', () => {
+	beforeEach(async () => {
+		page = await browser.newPage();
+		await page.goto('https://qamid.tmweb.ru/client/index.php');
+	});
 
-   test("'Booking multiple seats at oncet'", async () => {
-    await commands.selectShowtime(page);
-    await commands.pickMultipleSeats(page, 3);
-  await commands.confirmBooking(page);
-  await commands.checkQRCodePresence(page);
-
-   }, 80_000);
-
-   test("'Attempt to reserve an occupied seat'", async () => {
-    await commands.selectShowtime(page);
-    await commands.pickOccupiedSeat(page);
-   const actual = await page.$("#non-existing-button");
-    await expect(actual).toBe(null);
-   }, 80_000);
-
-  });
+	test('Should successfully book one ticket', async () => {
+		await clickElement(page, '.page-nav > a:nth-child(5)');
+		await clickElement(page, 'a.movie-seances__time');
+		await clickElement(page, '.buying-scheme__row > span:nth-child(8)');
+		await clickElement(page, 'button.acceptin-button');
+		await clickElement(page, 'button.acceptin-button');
+		const actual = await getText(page, 'p.ticket__hint');
+		expect(actual).toContain(
+			'Покажите QR-код нашему контроллеру для подтверждения бронирования.');
+		//await page.screenshot({ path: 'Screenshot/Booking1.png' });
+	}, 80000);
+	test('Should successfully book two tickets', async () => {
+		await clickElement(page, '.page-nav > a:nth-child(5)');
+		await clickElement(page, 'a.movie-seances__time');
+		await clickElement(page, '.buying-scheme__row > span:nth-child(5)');
+		await clickElement(page, '.buying-scheme__row > span:nth-child(6)');
+		await clickElement(page, 'button.acceptin-button');
+		await clickElement(page, 'button.acceptin-button');
+		const actual = await getText(page, 'p.ticket__hint');
+		expect(actual).toContain(
+			'Покажите QR-код нашему контроллеру для подтверждения бронирования.');
+		//await page.screenshot({ path: 'Screenshot/Booking2.png' });
+	}, 80000);
+	test('Should unsuccessful to book already booked ticket', async () => {
+		await clickElement(page, '.page-nav > a:nth-child(5)');
+		await clickElement(page, 'a.movie-seances__time');
+		await clickElement(page, '.buying-scheme__row > span:nth-child(1)');
+		expect(String(await page.$eval("button", (button) => {
+		return button.disabled;}))).toContain("true");
+		//await page.screenshot({ path: 'Screenshot/Booking3.png' });
+	}, 80000);
+});
